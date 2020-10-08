@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        .cell {
+            background-color: green;
+            width: 100px;
+            height: 100px;
+            border: solid 1px white;
+            display: inline-block;
+            vertical-align: middle;
+            text-align: center;
+            line-height: 100px;
+            font-size: 50px;
+        }
+    </style>
+
+</head>
+
+
+<body>
+    <div id="board"></div>
+</body>
+
+<script>
+    let pattern = [
+        [0, 0, 2],
+        [0, 1, 0],
+        [0, 0, 0],
+    ]
+
+    let color = 1
+
+    function show() {
+        let board = document.getElementById("board");
+        board.innerHTML = ""
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+                let cell = document.createElement("div");
+                cell.classList.add("cell");
+                cell.innerText = pattern[i][j] == 2 ? "❌" :
+                    pattern[i][j] == 1 ? "⭕️" : "";
+                cell.addEventListener("click", () => userMove(i, j))
+                board.appendChild(cell)
+            }
+            board.appendChild(document.createElement("br"))
+        }
+    }
+
+    function userMove(i, j) {
+        let currentColor = pattern[i][j]
+        pattern[i][j] = color
+        if (check(pattern, color)) {
+            alert(color === 2 ? "❌ is winner" : "⭕️ is winner")
+        }
+        color = 3 - color;
+        show();
+        computerMove();
+    }
+    function computerMove() {
+        let choice = bestChoice(pattern, color)
+        if (choice.point) {
+            pattern[choice.point[0]][choice.point[1]] = color
+        }
+        if (check(pattern, color)) {
+            alert(color === 2 ? "❌ is winner" : "⭕️ is winner")
+        }
+        color = 3 - color;
+        show();
+    }
+
+    function willwin(pattern, color) {
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+                if (pattern[i][j] != 0) { continue }
+                let temp = clone(pattern)
+                temp[i][j] = color;
+                if (check(temp, color)) {
+                    return [i, j]
+                }
+            }
+        }
+        return null
+    }
+
+    function bestChoice(pattern, color) {
+        let p;
+        if (p = willwin(pattern, color)) {
+            return { point: p, result: 1 }
+        }
+        let result = -2;
+        let point = null;
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+                if (pattern[i][j]) { continue }
+                let temp = clone(pattern)
+                temp[i][j] = color
+                let r = bestChoice(temp, 3 - color).result;
+                if (-r > result) {
+                    result = -r;
+                    point = [i, j]
+                }
+            }
+        }
+        return {
+            point: point,
+            result: point ? result : 0
+        }
+    }
+
+    function clone(pattern) {
+        return JSON.parse(JSON.stringify(pattern))
+    }
+
+    function check(pattern, color) {
+        //同一行是否连成线
+        for (let i = 0; i < 3; i++) {
+            let win = true
+            for (let j = 0; j < 3; j++) {
+                if (pattern[i][j] != color) {
+                    win = false
+                }
+            }
+            if (win) {
+                return true
+            }
+        }
+
+        //同一列是否连成线
+        for (let j = 0; j < 3; j++) {
+            let win = true
+            for (let i = 0; i < 3; i++) {
+                if (pattern[i][j] != color) {
+                    win = false
+                }
+            }
+            if (win) {
+                return true
+            }
+        }
+        //斜线是否连成线
+        {
+            let win = true
+            for (let i = 0; i < 3; i++) {
+                if (pattern[i][i] != color) {
+                    win = false
+                }
+            }
+            if (win) {
+                return true
+            }
+        }
+
+        {
+            let win = true
+            for (let i = 0; i < 3; i++) {
+                if (pattern[2 - i][i] != color) {
+                    win = false
+                }
+            }
+            if (win) {
+                return true
+            }
+
+        }
+        return false
+    }
+
+    show()
+    console.log(bestChoice(pattern, color))
+</script>
+
+</html>
