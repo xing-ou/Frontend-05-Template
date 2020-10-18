@@ -1,0 +1,110 @@
+<style>
+    .cell {
+        width: 6px;
+        height: 6px;
+        display: inline-block;
+        background-color: gray;
+        border-bottom: solid 1px white;
+        border-right: solid 1px white;
+        vertical-align: middle;
+    }
+
+    #container {
+        /* 每个div之间会默认有一个字符的间距，设置字体为0，才能每个div连在一起 */
+        font-size: 0px;
+    }
+</style>
+
+<div id="container">
+</div>
+
+<div>
+    <button onclick="saveMap()">保存</button>
+</div>
+<script>
+
+    //初始化地图数据
+    let ls = localStorage["map"]
+    let map = ls ? JSON.parse(ls) : Array(10000).fill(0)
+    //初始化状态和辅助函数
+    function saveMap() {
+        localStorage["map"] = JSON.stringify(map)
+        console.log("保存成功")
+    }
+
+    let mousedown = false
+    let clear = false
+    //拿到container
+    let container = document.getElementById("container")
+    for (let i = 0; i < 100; i++) {
+        for (let j = 0; j < 100; j++) {
+            let cell = document.createElement("div")
+            cell.classList.add("cell")
+            container.appendChild(cell)
+            if (map[i * 100 + j] === 1) {
+                cell.style.backgroundColor = "black"
+            }
+            cell.addEventListener("mousemove", () => {
+                if (mousedown) {
+                    if (clear) {
+                        cell.style.backgroundColor = "gray"
+                        map[100 * i + j] = 0
+                    } else {
+                        cell.style.backgroundColor = "black"
+                        map[100 * i + j] = 1
+                    }
+                }
+            })
+        }
+        let br = document.createElement("br")
+        container.appendChild(br)
+    }
+
+    //添加点击事件
+    document.addEventListener("mousedown", e => {
+        mousedown = true
+        clear = (e.which === 3)
+    })
+    document.addEventListener("mouseup", () => {
+        mousedown = false
+    })
+
+    document.addEventListener("contextmenu", e => e.preventDefault())
+
+
+    function path(map, start, end) {
+        let queue = [start]
+        function insert(i, j) {
+            //越界，直接返回
+            if (i < 0 || i >= 100 || j < 0 || j >= 100) {
+                return
+            }
+            //如果是墙(1)，或者已经添加了(2)，那么返回
+            if (map[100 * j + i] > 0) {
+                return
+            }
+            //标记为添加了
+            map[100 * j + i] = 2
+            queue.push([i, j])
+        }
+
+        while (queue.length > 0) {
+            //取出队列开头的数据
+            let [i, j] = queue.shift()
+            console.log(i, j)
+            //如果已经找到了，那么返回true
+            if (end[0] == i && end[1] == j) {
+                return true
+            } else {
+                //没找到，那么把上下左右的点加入寻路queue里
+                insert(i - 1, j)
+                insert(i + 1, j)
+                insert(i, j - 1)
+                insert(i, j + 1)
+            }
+        }
+        //都没找到，返回false
+        return false
+    }
+
+</script>
