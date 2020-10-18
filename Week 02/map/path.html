@@ -32,6 +32,12 @@
         console.log("保存成功")
     }
 
+    function sleep(duration) {
+        return new Promise((resolve) => {
+            setTimeout(resolve, duration)
+        })
+    }
+
     let mousedown = false
     let clear = false
     //拿到container
@@ -40,6 +46,7 @@
         for (let j = 0; j < 100; j++) {
             let cell = document.createElement("div")
             cell.classList.add("cell")
+            cell.id = `${100 * i + j}`
             container.appendChild(cell)
             if (map[i * 100 + j] === 1) {
                 cell.style.backgroundColor = "black"
@@ -72,9 +79,9 @@
     document.addEventListener("contextmenu", e => e.preventDefault())
 
 
-    function path(map, start, end) {
+    async function path(map, start, end) {
         let queue = [start]
-        function insert(i, j) {
+        async function insert(i, j) {
             //越界，直接返回
             if (i < 0 || i >= 100 || j < 0 || j >= 100) {
                 return
@@ -85,22 +92,23 @@
             }
             //标记为添加了
             map[100 * j + i] = 2
+            await sleep(5)
             queue.push([i, j])
+            document.getElementById(`${100 * j + i}`).style.backgroundColor = "red"
         }
 
         while (queue.length > 0) {
             //取出队列开头的数据
             let [i, j] = queue.shift()
-            console.log(i, j)
             //如果已经找到了，那么返回true
             if (end[0] == i && end[1] == j) {
                 return true
             } else {
                 //没找到，那么把上下左右的点加入寻路queue里
-                insert(i - 1, j)
-                insert(i + 1, j)
-                insert(i, j - 1)
-                insert(i, j + 1)
+                await insert(i - 1, j)
+                await insert(i + 1, j)
+                await insert(i, j - 1)
+                await insert(i, j + 1)
             }
         }
         //都没找到，返回false
